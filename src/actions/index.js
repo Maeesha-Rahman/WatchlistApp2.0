@@ -1,5 +1,7 @@
 // instance of axios 
 import themoviedb from '../apis/themoviedb';
+// import { firebase } from '../firebase';
+import { getFirestore } from 'redux-firestore';
 
 import {
     SIGN_IN,
@@ -7,9 +9,12 @@ import {
     // CREATE_LIST,
     FETCH_MOVIES,
     // FETCH_MOVIE,
+    SAVED_MOVIES,
     // DELETE_MOVIE,
-    // EDIT_LIST
+    // EDIT_LIST,
+    SAVED_MOVIES_ERROR
 } from './types';
+
 
 export const signIn = (userId) => {
     return {
@@ -33,9 +38,24 @@ export const fetchMovies = (term) => async dispatch => {
         }
     });
 
-    console.log(response)
-
     dispatch({ type: FETCH_MOVIES, payload: response.data.results })
 }
+
+export const saveMovie = movie => dispatch => {
+    const firestore = getFirestore();
+
+    firestore.collection('movies').add({
+        ...movie
+    }).then(() => {
+        dispatch({ type: SAVED_MOVIES, payload: movie })
+    }).catch(err => {
+        dispatch({ type: SAVED_MOVIES_ERROR, payload: err })
+    })
+}
+
+
+
+
+
 
 

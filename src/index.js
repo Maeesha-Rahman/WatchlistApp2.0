@@ -1,19 +1,38 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
-import { createStore, applyMiddleware } from 'redux';
+import { createStore, applyMiddleware, compose } from 'redux';
 import reduxThunk from 'redux-thunk';
-import ReduxPromise from 'redux-promise';
+import { getFirestore, reduxFirestore, createFirestoreInstance } from 'redux-firestore';
+import { getFirebase, ReactReduxFirebaseProvider } from 'react-redux-firebase';
+import firebase from './firebase';
 import * as serviceWorker from './serviceWorker';
 
 import App from './components/App';
 import reducers from './reducers';
 
-const createStoreWithMiddleware = createStore(reducers, applyMiddleware(reduxThunk, ReduxPromise));
+const createStoreWithMiddleware = createStore(reducers, compose(
+  applyMiddleware(reduxThunk.withExtraArgument({ getFirebase, getFirestore })), reduxFirestore(firebase)
+));
+
+// react-redux-firebase config
+const rrfConfig = {
+  userProfile: 'users'
+  // useFirestoreForProfile: true // Firestore for Profile instead of Realtime DB
+}
+
+const rrfProps = {
+  firebase,
+  config: rrfConfig,
+  dispatch: createStoreWithMiddleware.dispatch,
+  createFirestoreInstance
+}
 
 ReactDOM.render(
   <Provider store={createStoreWithMiddleware}>
-    <App />
+    <ReactReduxFirebaseProvider {...rrfProps}>
+      <App />
+    </ReactReduxFirebaseProvider>
   </Provider>,
   document.getElementById('root')
 );
